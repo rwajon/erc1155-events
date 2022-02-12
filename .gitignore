@@ -12,4 +12,26 @@
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
+.docker_build/
+bin/
+tmp
+.env
+.env.prod
+.env.production
+.env.staging
+**/.DS_Store
+logs
+*.log
+build
+builds
+*.pem
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
