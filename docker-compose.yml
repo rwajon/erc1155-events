@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+  mongodb:
+    container_name: mongodb_server
+    image: mongo
+    volumes:
+      - mongodb_volume:/var/opt/mongodb
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+  dev:
+    container_name: ${APP_NAME:-erc1155-events}-dev
+    image: ${REGISTRY_USERNAME:-rwajon}/${APP_NAME:-erc1155-events}:${TAG:-latest}
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: sh -c "./scripts/run.sh"
+    ports:
+      - ${PORT:-3000}:${PORT:-3000}
+    volumes:
+      - .:/app
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+
+  prod:
+    container_name: ${APP_NAME:-erc1155-events}-prod
+    image: ${REGISTRY_USERNAME:-rwajon}/${APP_NAME:-erc1155-events}:${TAG:-latest}
+    build:
+      context: .
+      target: production
+      dockerfile: ./Dockerfile
+    ports:
+      - ${PORT:-3000}:${PORT:-3000}
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+volumes:
+  mongodb_volume:

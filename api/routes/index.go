@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rwajon/ERC1155-Events/api/controllers"
+	"github.com/rwajon/erc1155-events/api/controllers"
 )
 
 func Init() *gin.Engine {
