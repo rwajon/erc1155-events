@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/rwajon/ERC1155-Events/api"
+	"github.com/rwajon/erc1155-events/api"
 )
 
 func main() {

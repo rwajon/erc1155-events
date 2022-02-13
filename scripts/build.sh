@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -25,7 +25,6 @@ os=${os:-"linux"}
 arch=${arch:-"amd64"}
 app_name=${app_name:-"app"}
 
-echo "env GOOS=$os GOARCH=$arch go build -o ${app_name}-${arch} ."
-env GOOS=$os GOARCH=$arch go build -o ${app_name}-${arch} .
+CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -a -installsuffix cgo -o ${app_name}-${arch} .
 mkdir -p bin
 mv ${app_name}-${arch} bin/
