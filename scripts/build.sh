@@ -13,7 +13,7 @@ while [ $# -gt 0 ]; do
     ;;
   *)
     printf "***************************\n"
-    printf "* Error(get_args.sh): Invalid argument (${1}).\n"
+    printf "* Error: Invalid argument (${1}).\n"
     printf "***************************\n"
     exit 1
     ;;

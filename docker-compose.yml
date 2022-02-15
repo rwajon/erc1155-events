@@ -1,14 +1,22 @@
 version: "3.7"
 
 services:
+  ganache_cli:
+    container_name: ganache_cli
+    image: trufflesuite/ganache-cli
+    restart: unless-stopped
+    ports:
+      - 8545:8545
+
   mongodb:
     container_name: mongodb_server
     image: mongo
     volumes:
-      - mongodb_volume:/var/opt/mongodb
+      - $HOME/docker/volumes/mongodb:/var/opt/mongodb
     restart: unless-stopped
     ports:
       - 27017:27017
+
   dev:
     container_name: ${APP_NAME:-erc1155-events}-dev
     image: ${REGISTRY_USERNAME:-rwajon}/${APP_NAME:-erc1155-events}:${TAG:-latest}
@@ -23,6 +31,7 @@ services:
       - .:/app
     restart: unless-stopped
     depends_on:
+      - ganache_cli
       - mongodb
 
   prod:
@@ -37,6 +46,3 @@ services:
     volumes:
       - .:/app
     restart: unless-stopped
-
-volumes:
-  mongodb_volume:
