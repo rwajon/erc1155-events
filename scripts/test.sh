@@ -1,0 +1,3 @@
+#!/bin/sh
+
+GO_ENV=test go test ./tests...

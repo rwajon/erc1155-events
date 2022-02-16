@@ -1,7 +1,6 @@
 FROM golang:1.17-alpine AS development
 WORKDIR /app
 COPY . ./
-RUN apk add --update curl
 RUN go mod download
 
 FROM development AS builder

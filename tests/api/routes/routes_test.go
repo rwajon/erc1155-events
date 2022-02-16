@@ -6,11 +6,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/rwajon/erc1155-events/api/routes"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPingRoute(t *testing.T) {
-	router := Init()
+	router := routes.Init()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/v1/ping", nil)
