@@ -89,29 +89,26 @@ func SaveBlockTransactions(client *ethclient.Client, block Block) []models.Trans
 	}
 
 	log.Println("new block:", block.Number)
-
 	var transactions []models.Transaction
 
-	for i, tx := range block.Transactions {
+	for _, tx := range block.Transactions {
 		transaction := &models.Transaction{
-			BlockNumber: block.Number,
-			BlockHash:   block.Hash,
-			Timestamp:   utils.HexToInt(block.Timestamp),
-			Date:        time.Unix(utils.HexToInt(block.Timestamp), 0),
-			From:        tx.From,
-			Gas:         utils.HexToFloat(tx.Gas) / math.Pow10(18),
-			GasPrice:    utils.HexToFloat(tx.GasPrice) / math.Pow10(18),
-			Hash:        tx.Hash,
-			To:          tx.To,
-			Type:        uint8(utils.HexToInt(tx.Type)),
-			Value:       utils.HexToFloat(tx.Value) / math.Pow10(18),
+			BlockNumber:     block.Number,
+			BlockHash:       block.Hash,
+			Timestamp:       utils.HexToInt(block.Timestamp),
+			Date:            time.Unix(utils.HexToInt(block.Timestamp), 0),
+			From:            tx.From,
+			Gas:             utils.HexToFloat(tx.Gas) / math.Pow10(18),
+			GasPrice:        utils.HexToFloat(tx.GasPrice) / math.Pow10(18),
+			Hash:            tx.Hash,
+			To:              tx.To,
+			Type:            uint8(utils.HexToInt(tx.Type)),
+			Value:           utils.HexToFloat(tx.Value) / math.Pow10(18),
+			SenderBalance:   GetBalance(client, tx.From, block.Number),
+			ReceiverBalance: GetBalance(client, tx.To, block.Number),
+			ContractAddress: GetContract(client, tx.To, block.Number),
 		}
 
-		if i < 1 { //TODO: remove condition
-			transaction.SenderBalance = GetBalance(client, tx.From, block.Number)
-			transaction.ReceiverBalance = GetBalance(client, tx.To, block.Number)
-			transaction.ContractAddress = GetContract(client, tx.To, block.Number)
-		}
 		transactions = append(transactions, *transaction)
 	}
 
