@@ -80,3 +80,20 @@ func DBFindMany(collection *mongo.Collection, filter interface{}, opts ...*optio
 
 	return data, err
 }
+
+func DBFindManyAndCount(collection *mongo.Collection, filter interface{}, opts ...*options.FindOptions) (map[string]interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	count, err := collection.CountDocuments(ctx, filter)
+
+	if err != nil {
+		fmt.Println("failed to count records:", err)
+		return nil, err
+	}
+
+	data, err := DBFindMany(collection, filter, opts...)
+	result := map[string]interface{}{"count": count, "data": data}
+
+	return result, err
+}
