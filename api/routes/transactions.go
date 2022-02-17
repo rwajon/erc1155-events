@@ -7,5 +7,6 @@ import (
 
 func transactionRoutes(router *gin.RouterGroup) *gin.RouterGroup {
 	router.GET("/", controllers.GetTransactions)
+	router.GET("/:hash", controllers.GetOneTransaction)
 	return router
 }

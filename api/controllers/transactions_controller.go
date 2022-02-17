@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/araddon/dateparse"
 	"github.com/gin-gonic/gin"
@@ -19,12 +18,6 @@ import (
 
 var transactionCollection = config.GetCollection("transactions")
 
-func getDateInterval(d string) (time.Time, time.Time) {
-	d1, _ := dateparse.ParseAny(d)
-	d2, _ := dateparse.ParseAny(fmt.Sprintf("%d-%d-%d 23:59:59", d1.Year(), d1.Month(), d1.Day()))
-	return d1, d2
-}
-
 func GetTransactions(c *gin.Context) {
 	filters := bson.M{}
 	var page, perPage int64 = 1, 100
@@ -34,7 +27,8 @@ func GetTransactions(c *gin.Context) {
 			if len(value) > 0 {
 				switch key {
 				case "date":
-					d1, d2 := getDateInterval(value[0])
+					d1, _ := dateparse.ParseAny(value[0])
+					d2, _ := dateparse.ParseAny(fmt.Sprintf("%d-%d-%d 23:59:59", d1.Year(), d1.Month(), d1.Day()))
 					filters[strings.ToLower(key)] = bson.M{"$gte": d1, "$lte": d2}
 				case "page":
 					page = utils.StringToInt(value[0])
@@ -73,14 +67,53 @@ func GetTransactions(c *gin.Context) {
 		return
 	}
 
+	if len(data) == 0 {
+		c.JSON(http.StatusNotFound, models.Error{
+			Code:    http.StatusNotFound,
+			Message: "no transactions found",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, models.Response{
 		Code:    http.StatusOK,
 		Message: "success",
 		Data:    data,
-		Meta: map[string]interface{}{
-			"page":    page,
-			"perPage": perPage,
-			"total":   result["count"],
-		},
+		Meta:    map[string]interface{}{"page": page, "perPage": perPage, "total": result["count"]},
+	})
+}
+
+func GetOneTransaction(c *gin.Context) {
+	result, err := helpers.DBFindOne(transactionCollection, bson.M{
+		"hash": bson.M{"$regex": c.Param("hash"), "$options": "im"},
+	})
+
+	var data models.Transaction
+
+	if err == nil {
+		err = json.Unmarshal(utils.Jsonify(result), &data)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Error{
+			Code:    http.StatusInternalServerError,
+			Message: "error",
+			Error:   err,
+		})
+		return
+	}
+
+	if len(result) == 0 {
+		c.JSON(http.StatusNotFound, models.Error{
+			Code:    http.StatusNotFound,
+			Message: fmt.Sprintf("no transaction with hash: \"%s\" found", c.Param("hash")),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Response{
+		Code:    http.StatusOK,
+		Message: "success",
+		Data:    data,
 	})
 }

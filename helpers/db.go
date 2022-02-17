@@ -44,19 +44,21 @@ func DBInsertMany(collection *mongo.Collection, documents []interface{}, opts ..
 	return result, err
 }
 
-func DBFindOne(collection *mongo.Collection, filter interface{}, opts ...*options.FindOneOptions) map[string]interface{} {
+func DBFindOne(collection *mongo.Collection, filter interface{}, opts ...*options.FindOneOptions) (map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	result := collection.FindOne(ctx, filter, opts...)
 
+	if result.Err() != nil {
+		return nil, nil
+	}
 	var data map[string]interface{}
-
 	if err := result.Decode(&data); err != nil {
-		return nil
+		return nil, err
 	}
 
-	return data
+	return data, nil
 }
 
 func DBFindMany(collection *mongo.Collection, filter interface{}, opts ...*options.FindOptions) ([]map[string]interface{}, error) {
