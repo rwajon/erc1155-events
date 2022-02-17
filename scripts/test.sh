@@ -1,3 +1,4 @@
 #!/bin/sh
 
-GO_ENV=test go test ./tests...
+go clean -testcache
+GO_ENV=test go test ./tests... ${@}
