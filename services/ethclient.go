@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 
 	"fmt"
 	"log"
@@ -12,8 +11,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/rwajon/erc1155-events/config"
+	"github.com/rwajon/erc1155-events/db"
 	"github.com/rwajon/erc1155-events/models"
 	"github.com/rwajon/erc1155-events/utils"
 )
@@ -22,11 +23,22 @@ type Block struct {
 	Hash         string `json:"hash"`
 	Number       string `json:"number"`
 	Timestamp    string `json:"timestamp"`
-	Transactions []interface{}
+	Transactions []Transaction
 }
 
+type Transaction struct {
+	From     string `json:"from"`
+	Gas      string `json:"gas"`
+	GasPrice string `json:"gasPrice"`
+	Hash     string `json:"hash"`
+	To       string `json:"to"`
+	Type     string `json:"type"`
+	Value    string `json:"value"`
+}
+
+var envs config.Env = config.GetEnvs()
+
 func ListenToERC1155Events() error {
-	envs := config.GetEnvs()
 	rpcClient, err := rpc.Dial(envs.RPCWebSocketURL)
 	ethClient := ethclient.NewClient(rpcClient)
 
@@ -44,12 +56,9 @@ func ListenToERC1155Events() error {
 
 	for block := range blocksCh {
 		if len(block.Transactions) > 0 {
-			SaveBlockTransactions(ethClient, block)
+			go SaveBlockTransactions(ethClient, block)
 		} else {
-			go func() {
-				_block := GetBlock(rpcClient, block.Number)
-				SaveBlockTransactions(ethClient, _block)
-			}()
+			go SaveBlockTransactions(ethClient, GetBlock(rpcClient, block.Number))
 		}
 	}
 	return nil
@@ -79,47 +88,44 @@ func SaveBlockTransactions(client *ethclient.Client, block Block) []models.Trans
 		return nil
 	}
 
-	var transactions, _transactions []models.Transaction
+	log.Println("new block:", block.Number)
 
-	if err := json.Unmarshal(utils.InterfaceToJson(block.Transactions), &_transactions); err == nil {
-		for i, tx := range _transactions {
-			_tx := &models.Transaction{
-				BlockNumber: block.Number,
-				BlockHash:   block.Hash,
-				Timestamp:   fmt.Sprintf("%d", utils.HexToInt(block.Timestamp)),
-				Date:        time.Unix(utils.HexToInt(block.Timestamp), 0).String(),
-				From:        tx.From,
-				Gas:         fmt.Sprintf("%.18f", utils.HexToFloat(tx.Gas)/math.Pow10(18)),
-				GasPrice:    fmt.Sprintf("%.18f", utils.HexToFloat(tx.GasPrice)/math.Pow10(18)),
-				Hash:        tx.Hash,
-				To:          tx.To,
-				Type:        fmt.Sprintf("%d", utils.HexToInt(tx.Type)),
-				Value:       fmt.Sprintf("%.18f", utils.HexToFloat(tx.Value)/math.Pow10(18)),
-			}
+	var transactions []models.Transaction
 
-			if i < 1 { //TODO: remove condition
-				_tx.SenderBalance = GetBalance(client, tx.From, block.Number)
-				_tx.ReceiverBalance = GetBalance(client, tx.To, block.Number)
-				_tx.ContractAddress = GetContract(client, tx.To, block.Number)
-			}
-			transactions = append(transactions, *_tx)
+	for i, tx := range block.Transactions {
+		transaction := &models.Transaction{
+			BlockNumber: block.Number,
+			BlockHash:   block.Hash,
+			Timestamp:   utils.HexToInt(block.Timestamp),
+			Date:        time.Unix(utils.HexToInt(block.Timestamp), 0),
+			From:        tx.From,
+			Gas:         utils.HexToFloat(tx.Gas) / math.Pow10(18),
+			GasPrice:    utils.HexToFloat(tx.GasPrice) / math.Pow10(18),
+			Hash:        tx.Hash,
+			To:          tx.To,
+			Type:        uint8(utils.HexToInt(tx.Type)),
+			Value:       utils.HexToFloat(tx.Value) / math.Pow10(18),
 		}
 
-		//TODO: add save to database implementation
-		if len(transactions) > 0 {
-			utils.WriteToFile("transactions.log", string(utils.InterfaceToJson(transactions)))
+		if i < 1 { //TODO: remove condition
+			transaction.SenderBalance = GetBalance(client, tx.From, block.Number)
+			transaction.ReceiverBalance = GetBalance(client, tx.To, block.Number)
+			transaction.ContractAddress = GetContract(client, tx.To, block.Number)
 		}
-	} else {
-		return nil
+		transactions = append(transactions, *transaction)
 	}
+
+	db.Transaction.BulkSave(transactions, &options.InsertManyOptions{
+		Ordered: func() *bool { v := false; return &v }(),
+	})
 
 	return transactions
 }
 
-func GetBalance(client *ethclient.Client, address string, blockNumber string) string {
+func GetBalance(client *ethclient.Client, address string, blockNumber string) float64 {
 	if client == nil {
 		fmt.Println("client should not be nil")
-		return ""
+		return 0
 	}
 	_address := common.HexToAddress(address)
 	_blockNumber := common.HexToAddress(blockNumber).Hash().Big()
@@ -127,10 +133,10 @@ func GetBalance(client *ethclient.Client, address string, blockNumber string) st
 
 	if err != nil {
 		fmt.Println("can't get balance from address:", address)
-		return ""
+		return 0
 	}
 
-	return fmt.Sprintf("%.18f", utils.StringToFloat(balance.String())/math.Pow10(18))
+	return utils.StringToFloat(balance.String()) / math.Pow10(18)
 }
 
 func GetContract(client *ethclient.Client, address string, blockNumber string) string {

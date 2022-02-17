@@ -10,7 +10,6 @@ import (
 type Env struct {
 	GoEnv           string
 	Port            string
-	RpcURl          string
 	RPCWebSocketURL string
 	AppName         string
 	DatabaseURL     string
@@ -31,18 +30,18 @@ func GetEnvs() Env {
 
 	envs := Env{
 		GoEnv:   getEnv("GO_ENV", "development"),
-		AppName: getEnv("APP_NAME", "app"),
+		AppName: getEnv("APP_NAME", "erc1155-events"),
 		Port:    getEnv("PORT", "3000"),
 	}
-	log.Println("envs.GoEnv---------", envs.GoEnv)
+
 	switch envs.GoEnv {
-	case "production":
-		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("RPC_WS_URL"), getEnv("DB_URL")
+	case "development":
+		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("DEV_RPC_WS_URL"), getEnv("DEV_DB_URL")
 	case "test":
 		envs.RPCWebSocketURL = getEnv("TEST_RPC_WS_URL", "ws://localhost:8545")
-		envs.DatabaseURL = getEnv("TEST_DB_URL", "mongodb://127.0.0.1:27017/erc1155_events_test")
-	default:
-		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("DEV_RPC_WS_URL"), getEnv("DEV_DB_URL")
+		envs.DatabaseURL = getEnv("TEST_DB_URL", "mongodb://localhost:27017/erc1155_events_test")
+	case "production":
+		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("RPC_WS_URL"), getEnv("DB_URL")
 	}
 
 	return envs
