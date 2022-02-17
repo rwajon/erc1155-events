@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,14 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPingRoute(t *testing.T) {
+func TestTransactionRoutes(t *testing.T) {
 	router := routes.Init()
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/ping", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/transactions/", nil)
 	router.ServeHTTP(w, req)
 
-	res, _ := json.Marshal(map[string]string{"message": "pong"})
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, string(res), w.Body.String())
 }

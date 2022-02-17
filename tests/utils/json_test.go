@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInterfaceToJson(t *testing.T) {
+func TestJsonify(t *testing.T) {
 	data := map[string]string{"name": "John Smith"}
-	assert.Equal(t, string(utils.InterfaceToJson(data)), "{\"name\":\"John Smith\"}")
-	assert.Equal(t, string(utils.InterfaceToJson(func() {})), "")
-	assert.Nil(t, utils.InterfaceToJson(func() {}))
+	assert.Equal(t, string(utils.Jsonify(data)), "{\"name\":\"John Smith\"}")
+	assert.Equal(t, string(utils.Jsonify(func() {})), "")
+	assert.Nil(t, utils.Jsonify(func() {}))
 }

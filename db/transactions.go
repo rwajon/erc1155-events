@@ -2,13 +2,11 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 
 	"github.com/rwajon/erc1155-events/config"
 	"github.com/rwajon/erc1155-events/helpers"
 	"github.com/rwajon/erc1155-events/models"
-	"github.com/rwajon/erc1155-events/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,13 +37,13 @@ func (tx *transaction) createIndexes() {
 }
 
 func (tx *transaction) Save(data models.Transaction, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	return helpers.DBSave(transactionCollection, data, opts...)
+	return helpers.DBInsertOne(transactionCollection, data, opts...)
 }
 
 func (tx *transaction) BulkSave(data []models.Transaction, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
 	var transactions []interface{}
-	if err := json.Unmarshal(utils.InterfaceToJson(data), &transactions); err != nil {
-		return nil, nil
+	for _, tx := range data {
+		transactions = append(transactions, tx)
 	}
-	return helpers.DBBulkSave(transactionCollection, transactions, opts...)
+	return helpers.DBInsertMany(transactionCollection, transactions, opts...)
 }
