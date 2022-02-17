@@ -27,36 +27,41 @@ func getDateInterval(d string) (time.Time, time.Time) {
 
 func GetTransactions(c *gin.Context) {
 	filters := bson.M{}
-	var page int64 = 0
-	var perPage int64 = 100
+	var page, perPage int64 = 1, 100
 
-	for key, value := range c.Request.URL.Query() {
-		if len(value) > 0 {
-			switch key {
-			case "date":
-				d1, d2 := getDateInterval(value[0])
-				filters[strings.ToLower(key)] = bson.M{"$gte": d1, "$lte": d2}
-			case "page":
-				page = utils.StringToInt(value[0]) - 1
-				if page < 0 {
-					page = 0
+	if c.Request != nil {
+		for key, value := range c.Request.URL.Query() {
+			if len(value) > 0 {
+				switch key {
+				case "date":
+					d1, d2 := getDateInterval(value[0])
+					filters[strings.ToLower(key)] = bson.M{"$gte": d1, "$lte": d2}
+				case "page":
+					page = utils.StringToInt(value[0])
+				case "limit", "perPage":
+					perPage = utils.StringToInt(value[0])
+				default:
+					filters[strings.ToLower(key)] = bson.M{"$regex": value[0], "$options": "im"}
 				}
-			case "limit", "perPage":
-				perPage = utils.StringToInt(value[0])
-			default:
-				filters[strings.ToLower(key)] = bson.M{"$regex": value[0], "$options": "im"}
 			}
 		}
 	}
-	result, err := helpers.DBFindMany(transactionCollection, filters, &options.FindOptions{
-		Skip:  &page,
+
+	result, err := helpers.DBFindManyAndCount(transactionCollection, filters, &options.FindOptions{
+		Skip: func() *int64 {
+			p := page - 1
+			if p < 0 {
+				p = 1
+			}
+			return &p
+		}(),
 		Limit: &perPage,
 	})
 
 	var data []models.Transaction
 
 	if err == nil {
-		err = json.Unmarshal(utils.Jsonify(result), &data)
+		err = json.Unmarshal(utils.Jsonify(result["data"]), &data)
 	}
 
 	if err != nil {
@@ -72,6 +77,10 @@ func GetTransactions(c *gin.Context) {
 		Code:    http.StatusOK,
 		Message: "success",
 		Data:    data,
-		Meta:    map[string]interface{}{"page": page, "perPage": perPage, "total": len(data)},
+		Meta: map[string]interface{}{
+			"page":    page,
+			"perPage": perPage,
+			"total":   result["count"],
+		},
 	})
 }
