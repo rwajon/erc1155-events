@@ -20,16 +20,16 @@ func TestSave(t *testing.T) {
 	transaction := models.Transaction{
 		Hash: "0xdf18df8fe0150858d5bbbd149098fbd497adedefdfa91478960e71f07d0019af",
 	}
-	result, err := helpers.DBSave(transactionCollection, transaction)
+	result, err := helpers.DBInsertOne(transactionCollection, transaction)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
 	assert.IsType(t, *result, mongo.InsertOneResult{})
 
-	result, _ = helpers.DBSave(transactionCollection, nil)
+	result, _ = helpers.DBInsertOne(transactionCollection, nil)
 	assert.Nil(t, result)
 
 	var emptyData interface{}
-	result, _ = helpers.DBSave(transactionCollection, emptyData)
+	result, _ = helpers.DBInsertOne(transactionCollection, emptyData)
 	assert.Nil(t, result)
 }
 
@@ -41,15 +41,15 @@ func TestBulkSave(t *testing.T) {
 			Hash: "0xdf18df8fe0150858d5bbbd149098fbd497adedefdfa91478960e71f07d0019af",
 		},
 	}
-	result, err := helpers.DBBulkSave(transactionCollection, transactions)
+	result, err := helpers.DBInsertMany(transactionCollection, transactions)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
 	assert.IsType(t, *result, mongo.InsertManyResult{})
 
-	result, _ = helpers.DBBulkSave(transactionCollection, nil)
+	result, _ = helpers.DBInsertMany(transactionCollection, nil)
 	assert.Nil(t, result)
 
 	var emptyData []interface{}
-	result, _ = helpers.DBBulkSave(transactionCollection, emptyData)
+	result, _ = helpers.DBInsertMany(transactionCollection, emptyData)
 	assert.Nil(t, result)
 }

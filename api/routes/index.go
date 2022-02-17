@@ -7,10 +7,11 @@ import (
 
 func Init() *gin.Engine {
 	router := gin.Default()
-	apiV1 := router.Group("/v1").Group("/api")
+	apiV1 := router.Group("/api").Group("/v1")
 
-	router.GET("/v1/ping", controllers.Ping)
+	router.GET("/ping", controllers.Ping)
 	apiV1.GET("/ping", controllers.Ping)
+	transactionRoutes(apiV1.Group("/transactions"))
 
 	return router
 }

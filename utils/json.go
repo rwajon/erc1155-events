@@ -5,10 +5,10 @@ import (
 	"fmt"
 )
 
-func InterfaceToJson(val interface{}) []byte {
+func Jsonify(val interface{}) []byte {
 	res, err := json.Marshal(val)
 	if err != nil {
-		fmt.Println("InterfaceToJson error: ", err)
+		fmt.Println("Jsonify error: ", err)
 		return nil
 	}
 	return res

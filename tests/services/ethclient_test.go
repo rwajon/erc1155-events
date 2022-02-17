@@ -43,7 +43,7 @@ func TestGetBalance(t *testing.T) {
 	rpcClient, ethClient := getClient()
 	block := services.GetBlock(rpcClient, "latest")
 	var transaction map[string]string
-	json.Unmarshal(utils.InterfaceToJson(block.Transactions[0]), &transaction)
+	json.Unmarshal(utils.Jsonify(block.Transactions[0]), &transaction)
 	res := services.GetBalance(ethClient, transaction["from"], block.Number)
 	assert.NotEqual(t, res, "")
 }
