@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rwajon/erc1155-events/utils"
 )
 
 type Env struct {
@@ -38,11 +39,12 @@ func GetEnvs() Env {
 	case "development":
 		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("DEV_RPC_WS_URL"), getEnv("DEV_DB_URL")
 	case "test":
-		envs.RPCWebSocketURL = getEnv("TEST_RPC_WS_URL", "ws://localhost:8545")
-		envs.DatabaseURL = getEnv("TEST_DB_URL", "mongodb://localhost:27017/erc1155_events_test")
+		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("TEST_RPC_WS_URL"), getEnv("TEST_DB_URL")
 	case "production":
-		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("RPC_WS_URL"), getEnv("DB_URL")
+		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("PROD_RPC_WS_URL"), getEnv("PROD_DB_URL")
 	}
+
+	log.Println("envs===>", string(utils.Jsonify(envs)))
 
 	return envs
 
