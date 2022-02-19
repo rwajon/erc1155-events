@@ -34,6 +34,20 @@ services:
       - ganache_cli
       - mongodb
 
+  test:
+    container_name: ${APP_NAME:-erc1155-events}-test
+    image: ${REGISTRY_USERNAME:-rwajon}/${APP_NAME:-erc1155-events}:${TAG:-latest}
+    build:
+      context: .
+      target: test
+      dockerfile: ./Dockerfile
+    command: sh -c "./scripts/test.sh"
+    volumes:
+      - .:/app
+    depends_on:
+      - ganache_cli
+      - mongodb
+
   prod:
     container_name: ${APP_NAME:-erc1155-events}-prod
     image: ${REGISTRY_USERNAME:-rwajon}/${APP_NAME:-erc1155-events}:${TAG:-latest}

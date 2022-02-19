@@ -1,1 +1,0 @@
-{"number":"0xd8cb94","hash":"0xcc780ad3292addeda9be0c3f5827cb8a49bc67786dd12b88bdeaf5e91c1cd56b","timestamp":"0x620b0a81","difficulty":"0x2cca41cd0d58af","transactionsCount":0,"transactions":[]}
