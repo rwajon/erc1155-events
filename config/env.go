@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/rwajon/erc1155-events/utils"
 )
 
 type Env struct {
@@ -44,8 +43,5 @@ func GetEnvs() Env {
 		envs.RPCWebSocketURL, envs.DatabaseURL = getEnv("PROD_RPC_WS_URL"), getEnv("PROD_DB_URL")
 	}
 
-	log.Println("envs===>", string(utils.Jsonify(envs)))
-
 	return envs
-
 }

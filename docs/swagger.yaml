@@ -1,0 +1,99 @@
+basePath: /api/v1
+definitions:
+  models.Error:
+    properties:
+      code:
+        type: integer
+      error: {}
+      message:
+        type: string
+    type: object
+  models.Transaction:
+    properties:
+      blockHash:
+        type: string
+      blockNumber:
+        type: string
+      contractAddress:
+        type: string
+      date:
+        type: string
+      from:
+        type: string
+      gas:
+        type: number
+      gasPrice:
+        type: number
+      hash:
+        type: string
+      receiverBalance:
+        type: number
+      senderBalance:
+        type: number
+      timestamp:
+        type: integer
+      to:
+        type: string
+      type:
+        type: integer
+      value:
+        type: number
+    type: object
+info:
+  contact:
+    email: jonathanrwabahizi@gmail.com
+    name: Jonathan Rwabahizi
+    url: http://www.swagger.io/support
+  description: ERC1155 events.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /transactions:
+    get:
+      consumes:
+      - '*/*'
+      description: get transactions list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Transaction'
+            type: array
+      summary: get transactions
+      tags:
+      - transactions
+  /transactions/{hash}:
+    get:
+      consumes:
+      - '*/*'
+      description: get single transaction
+      parameters:
+      - description: transaction hash
+        in: path
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Transaction'
+        "404":
+          description: 'no transaction with hash: {hash} found'
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: get single transaction
+      tags:
+      - transactions
+schemes:
+- http
+swagger: "2.0"

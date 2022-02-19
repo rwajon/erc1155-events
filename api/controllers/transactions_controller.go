@@ -18,6 +18,14 @@ import (
 
 var transactionCollection = config.GetCollection("transactions")
 
+// Ping godoc
+// @Summary get transactions
+// @Description get transactions list
+// @Tags transactions
+// @Accept */*
+// @Produce json
+// @Success 200 {object} []models.Transaction
+// @Router /transactions [get]
 func GetTransactions(c *gin.Context) {
 	filters := bson.M{}
 	var page, perPage int64 = 1, 100
@@ -83,6 +91,16 @@ func GetTransactions(c *gin.Context) {
 	})
 }
 
+// Ping godoc
+// @Summary get single transaction
+// @Description get single transaction
+// @Tags transactions
+// @Accept */*
+// @Produce json
+// @Param   hash     path    string     true        "transaction hash"
+// @Success 200 {object} models.Transaction
+// @Failure 404 {object} models.Error "no transaction with hash: {hash} found"
+// @Router /transactions/{hash} [get]
 func GetOneTransaction(c *gin.Context) {
 	result, err := helpers.DBFindOne(transactionCollection, bson.M{
 		"hash": bson.M{"$regex": c.Param("hash"), "$options": "im"},
