@@ -1,8 +1,8 @@
 version: "3.7"
 
 services:
-  ganache_cli:
-    container_name: ganache_cli
+  ganache-cli:
+    container_name: ganache-cli
     image: trufflesuite/ganache-cli
     restart: unless-stopped
     ports:
@@ -31,7 +31,7 @@ services:
       - .:/app
     restart: unless-stopped
     depends_on:
-      - ganache_cli
+      - ganache-cli
       - mongodb
 
   test:
@@ -45,7 +45,7 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - ganache_cli
+      - ganache-cli
       - mongodb
 
   prod:

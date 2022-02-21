@@ -40,6 +40,8 @@ $ cd erc1155-events
 $ docker-compose up dev
 ```
 
+After running the server, you can access API documentation at the following address `http://localhost:<PORT>/docs/index.html`
+
 # Running tests
 
 ```bash
@@ -51,3 +53,7 @@ $ ./scripts/test.sh
 ```bash
 $ docker-compose up test
 ```
+
+# License
+
+MIT

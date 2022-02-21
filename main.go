@@ -6,7 +6,7 @@ import (
 	"github.com/rwajon/erc1155-events/services"
 )
 
-// @title Swagger Example API
+// @title ERC1155-events
 // @version 1.0
 // @description ERC1155 events.
 // @termsOfService http://swagger.io/terms/
@@ -20,6 +20,7 @@ import (
 
 // @BasePath /api/v1
 // @schemes http
+// @schemes https
 func main() {
 	go db.Init()
 	go services.ListenToERC1155Events()

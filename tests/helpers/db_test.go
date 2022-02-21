@@ -1,21 +1,20 @@
 package tests
 
 import (
-	"context"
 	"testing"
 
 	"github.com/rwajon/erc1155-events/config"
 	"github.com/rwajon/erc1155-events/helpers"
 	"github.com/rwajon/erc1155-events/models"
+	"github.com/rwajon/erc1155-events/tests"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var transactionCollection *mongo.Collection = config.GetCollection("transactions")
 
 func TestSave(t *testing.T) {
-	transactionCollection.DeleteMany(context.Background(), bson.M{"_id": bson.M{"$ne": nil}})
+	tests.DeleteTransactions()
 
 	transaction := models.Transaction{
 		Hash: "0xdf18df8fe0150858d5bbbd149098fbd497adedefdfa91478960e71f07d0019af",
@@ -34,7 +33,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestBulkSave(t *testing.T) {
-	transactionCollection.DeleteMany(context.Background(), bson.M{"_id": bson.M{"$ne": nil}})
+	tests.DeleteTransactions()
 
 	transactions := []interface{}{
 		models.Transaction{
@@ -52,4 +51,26 @@ func TestBulkSave(t *testing.T) {
 	var emptyData []interface{}
 	result, _ = helpers.DBInsertMany(transactionCollection, emptyData)
 	assert.Nil(t, result)
+}
+
+func TestGetMany(t *testing.T) {
+	tests.DeleteTransactions()
+
+	transactions := []interface{}{
+		models.Transaction{
+			Hash: "0xdf18df8fe0150858d5bbbd149098fbd497adedefdfa91478960e71f07d0019af",
+		},
+	}
+
+	helpers.DBInsertMany(transactionCollection, transactions)
+
+	result, err := helpers.DBFindMany(transactionCollection, nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, result)
+	assert.Greater(t, len(result), 0)
+
+	tests.DeleteTransactions()
+	result, err = helpers.DBFindMany(transactionCollection, nil)
+	assert.Equal(t, len(result), 0)
+	assert.Nil(t, err)
 }

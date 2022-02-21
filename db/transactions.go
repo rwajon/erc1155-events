@@ -15,12 +15,14 @@ import (
 type ITransaction interface {
 	Save(data models.Transaction, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
 	BulkSave(data []models.Transaction, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error)
+	GetOne(filter interface{}, opts ...*options.FindOneOptions) (map[string]interface{}, error)
+	GetMany(filter interface{}, opts ...*options.FindOptions) ([]map[string]interface{}, error)
+	GetManyAndCount(filter interface{}, opts ...*options.FindOptions) (map[string]interface{}, error)
 }
 
 type transaction models.Transaction
 
 var transactionCollection *mongo.Collection = config.GetCollection("transactions")
-
 var Transaction = new(transaction)
 
 func (tx *transaction) createIndexes() {
@@ -46,4 +48,16 @@ func (tx *transaction) BulkSave(data []models.Transaction, opts ...*options.Inse
 		transactions = append(transactions, tx)
 	}
 	return helpers.DBInsertMany(transactionCollection, transactions, opts...)
+}
+
+func (tx *transaction) GetOne(filter interface{}, opts ...*options.FindOneOptions) (map[string]interface{}, error) {
+	return helpers.DBFindOne(transactionCollection, filter, opts...)
+}
+
+func (tx *transaction) GetMany(filter interface{}, opts ...*options.FindOptions) ([]map[string]interface{}, error) {
+	return helpers.DBFindMany(transactionCollection, filter, opts...)
+}
+
+func (tx *transaction) GetManyAndCount(filter interface{}, opts ...*options.FindOptions) (*models.DBFindManyAndCount, error) {
+	return helpers.DBFindManyAndCount(transactionCollection, filter, opts...)
 }
