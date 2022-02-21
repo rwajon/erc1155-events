@@ -14,6 +14,9 @@ func Run() {
 	router := routes.Init()
 
 	router.Use(gin.Recovery())
+	router.GET("/", func(c *gin.Context) {
+		c.String(200, "Welcome to ERC1155-events!")
+	})
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	if envs.Port == "" {

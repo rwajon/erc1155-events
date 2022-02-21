@@ -47,6 +47,12 @@ const docTemplate_swagger = `{
                                 "$ref": "#/definitions/models.Transaction"
                             }
                         }
+                    },
+                    "404": {
+                        "description": "no transactions found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
                     }
                 }
             }
@@ -88,9 +94,211 @@ const docTemplate_swagger = `{
                     }
                 }
             }
+        },
+        "/watch-list": {
+            "get": {
+                "description": "get watch list list",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watch-list"
+                ],
+                "summary": "get watch list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.WatchList"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "no address in watch list found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add an address in watch list",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watch-list"
+                ],
+                "summary": "add an address in watch list",
+                "parameters": [
+                    {
+                        "description": "new address to watch",
+                        "name": "address",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.NewAddressInWatch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.WatchList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/watch-list/{addressId}": {
+            "put": {
+                "description": "add an address in watch list",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watch-list"
+                ],
+                "summary": "add an address in watch list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "address ID to update",
+                        "name": "addressId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "new address to watch",
+                        "name": "address",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.NewAddressInWatch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.WatchList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "address {addressId} not found in watch list",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "delete an address in watch list",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watch-list"
+                ],
+                "summary": "delete an address in watch list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "address ID to delete",
+                        "name": "addressId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "address {addressId} not found in watch list",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/watch-list/{address}": {
+            "get": {
+                "description": "get single address in watch list",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watch-list"
+                ],
+                "summary": "get single address in watch list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "address in watch list",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.WatchList"
+                        }
+                    },
+                    "404": {
+                        "description": "address {address} not found in watch list",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "controllers.NewAddressInWatch": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Error": {
             "type": "object",
             "properties": {
@@ -105,7 +313,14 @@ const docTemplate_swagger = `{
         },
         "models.Transaction": {
             "type": "object",
+            "required": [
+                "blockHash",
+                "hash"
+            ],
             "properties": {
+                "_id": {
+                    "type": "string"
+                },
                 "blockHash": {
                     "type": "string"
                 },
@@ -149,6 +364,20 @@ const docTemplate_swagger = `{
                     "type": "number"
                 }
             }
+        },
+        "models.WatchList": {
+            "type": "object",
+            "required": [
+                "address"
+            ],
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
@@ -158,8 +387,8 @@ var SwaggerInfo_swagger = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
 	BasePath:         "/api/v1",
-	Schemes:          []string{"http"},
-	Title:            "Swagger Example API",
+	Schemes:          []string{"https"},
+	Title:            "ERC1155-events",
 	Description:      "ERC1155 events.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate_swagger,

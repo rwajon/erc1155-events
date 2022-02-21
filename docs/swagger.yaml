@@ -1,5 +1,10 @@
 basePath: /api/v1
 definitions:
+  controllers.NewAddressInWatch:
+    properties:
+      address:
+        type: string
+    type: object
   models.Error:
     properties:
       code:
@@ -10,6 +15,8 @@ definitions:
     type: object
   models.Transaction:
     properties:
+      _id:
+        type: string
       blockHash:
         type: string
       blockNumber:
@@ -38,6 +45,18 @@ definitions:
         type: integer
       value:
         type: number
+    required:
+    - blockHash
+    - hash
+    type: object
+  models.WatchList:
+    properties:
+      _id:
+        type: string
+      address:
+        type: string
+    required:
+    - address
     type: object
 info:
   contact:
@@ -49,7 +68,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Swagger Example API
+  title: ERC1155-events
   version: "1.0"
 paths:
   /transactions:
@@ -66,6 +85,10 @@ paths:
             items:
               $ref: '#/definitions/models.Transaction'
             type: array
+        "404":
+          description: no transactions found
+          schema:
+            $ref: '#/definitions/models.Error'
       summary: get transactions
       tags:
       - transactions
@@ -94,6 +117,134 @@ paths:
       summary: get single transaction
       tags:
       - transactions
+  /watch-list:
+    get:
+      consumes:
+      - '*/*'
+      description: get watch list list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.WatchList'
+            type: array
+        "404":
+          description: no address in watch list found
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: get watch list
+      tags:
+      - watch-list
+    post:
+      consumes:
+      - '*/*'
+      description: add an address in watch list
+      parameters:
+      - description: new address to watch
+        in: body
+        name: address
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.NewAddressInWatch'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.WatchList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: add an address in watch list
+      tags:
+      - watch-list
+  /watch-list/{address}:
+    get:
+      consumes:
+      - '*/*'
+      description: get single address in watch list
+      parameters:
+      - description: address in watch list
+        in: path
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.WatchList'
+        "404":
+          description: address {address} not found in watch list
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: get single address in watch list
+      tags:
+      - watch-list
+  /watch-list/{addressId}:
+    delete:
+      consumes:
+      - '*/*'
+      description: delete an address in watch list
+      parameters:
+      - description: address ID to delete
+        in: path
+        name: addressId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: address {addressId} not found in watch list
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: delete an address in watch list
+      tags:
+      - watch-list
+    put:
+      consumes:
+      - '*/*'
+      description: add an address in watch list
+      parameters:
+      - description: address ID to update
+        in: path
+        name: addressId
+        required: true
+        type: string
+      - description: new address to watch
+        in: body
+        name: address
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.NewAddressInWatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.WatchList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "404":
+          description: address {addressId} not found in watch list
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: add an address in watch list
+      tags:
+      - watch-list
 schemes:
-- http
+- https
 swagger: "2.0"

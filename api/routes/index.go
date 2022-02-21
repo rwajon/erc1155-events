@@ -12,6 +12,7 @@ func Init() *gin.Engine {
 	router.GET("/ping", controllers.Ping)
 	apiV1.GET("/ping", controllers.Ping)
 	transactionRoutes(apiV1.Group("/transactions"))
+	watchListRoutes(apiV1.Group("/watch-list"))
 
 	return router
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rwajon/erc1155-events/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -48,7 +50,12 @@ func DBFindOne(collection *mongo.Collection, filter interface{}, opts ...*option
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result := collection.FindOne(ctx, filter, opts...)
+	result := collection.FindOne(ctx, func() interface{} {
+		if filter == nil {
+			return bson.M{}
+		}
+		return filter
+	}(), opts...)
 
 	if result.Err() != nil {
 		return nil, nil
@@ -65,7 +72,12 @@ func DBFindMany(collection *mongo.Collection, filter interface{}, opts ...*optio
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := collection.Find(ctx, filter, opts...)
+	result, err := collection.Find(ctx, func() interface{} {
+		if filter == nil {
+			return bson.M{}
+		}
+		return filter
+	}(), opts...)
 
 	if err != nil {
 		fmt.Println("failed to find:", err)
@@ -83,7 +95,7 @@ func DBFindMany(collection *mongo.Collection, filter interface{}, opts ...*optio
 	return data, err
 }
 
-func DBFindManyAndCount(collection *mongo.Collection, filter interface{}, opts ...*options.FindOptions) (map[string]interface{}, error) {
+func DBFindManyAndCount(collection *mongo.Collection, filter interface{}, opts ...*options.FindOptions) (*models.DBFindManyAndCount, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -95,7 +107,40 @@ func DBFindManyAndCount(collection *mongo.Collection, filter interface{}, opts .
 	}
 
 	data, err := DBFindMany(collection, filter, opts...)
-	result := map[string]interface{}{"count": count, "data": data}
+	result := &models.DBFindManyAndCount{Count: count, Data: data}
 
 	return result, err
+}
+
+func DBUpdateOne(collection *mongo.Collection, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result, err := collection.UpdateOne(ctx, filter, update, opts...)
+
+	if err != nil {
+		fmt.Println("failed to update record:", err)
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func DBDeleteOne(collection *mongo.Collection, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result, err := collection.DeleteOne(ctx, func() interface{} {
+		if filter == nil {
+			return bson.M{}
+		}
+		return filter
+	}(), opts...)
+
+	if err != nil {
+		fmt.Println("failed to delete record:", err)
+		return nil, err
+	}
+
+	return result, nil
 }
