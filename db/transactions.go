@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/rwajon/erc1155-events/config"
 	"github.com/rwajon/erc1155-events/helpers"
 	"github.com/rwajon/erc1155-events/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,20 +11,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type ITransaction interface {
-	Save(data models.Transaction, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
-	BulkSave(data []models.Transaction, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error)
-	GetOne(filter interface{}, opts ...*options.FindOneOptions) (map[string]interface{}, error)
-	GetMany(filter interface{}, opts ...*options.FindOptions) ([]map[string]interface{}, error)
-	GetManyAndCount(filter interface{}, opts ...*options.FindOptions) (map[string]interface{}, error)
-}
-
 type transaction models.Transaction
 
-var transactionCollection *mongo.Collection = config.GetCollection("transactions")
+var transactionCollection *mongo.Collection
 var Transaction = new(transaction)
 
-func (tx *transaction) createIndexes() {
+func (tx *transaction) init() {
+	transactionCollection = GetCollection("transactions")
 	indexModel, err := transactionCollection.Indexes().CreateOne(context.Background(),
 		mongo.IndexModel{
 			Keys:    bson.D{{Key: "hash", Value: 1}},
@@ -39,7 +31,7 @@ func (tx *transaction) createIndexes() {
 }
 
 func (tx *transaction) Save(data models.Transaction, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	return helpers.DBInsertOne(transactionCollection, data, opts...)
+	return helpers.DB.InsertOne(transactionCollection, data, opts...)
 }
 
 func (tx *transaction) BulkSave(data []models.Transaction, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
@@ -47,17 +39,17 @@ func (tx *transaction) BulkSave(data []models.Transaction, opts ...*options.Inse
 	for _, tx := range data {
 		transactions = append(transactions, tx)
 	}
-	return helpers.DBInsertMany(transactionCollection, transactions, opts...)
+	return helpers.DB.InsertMany(transactionCollection, transactions, opts...)
 }
 
 func (tx *transaction) GetOne(filter interface{}, opts ...*options.FindOneOptions) (map[string]interface{}, error) {
-	return helpers.DBFindOne(transactionCollection, filter, opts...)
+	return helpers.DB.FindOne(transactionCollection, filter, opts...)
 }
 
 func (tx *transaction) GetMany(filter interface{}, opts ...*options.FindOptions) ([]map[string]interface{}, error) {
-	return helpers.DBFindMany(transactionCollection, filter, opts...)
+	return helpers.DB.FindMany(transactionCollection, filter, opts...)
 }
 
-func (tx *transaction) GetManyAndCount(filter interface{}, opts ...*options.FindOptions) (*models.DBFindManyAndCount, error) {
-	return helpers.DBFindManyAndCount(transactionCollection, filter, opts...)
+func (tx *transaction) GetManyAndCount(filter interface{}, opts ...*options.FindOptions) (*helpers.DBFindManyAndCount, error) {
+	return helpers.DB.FindManyAndCount(transactionCollection, filter, opts...)
 }

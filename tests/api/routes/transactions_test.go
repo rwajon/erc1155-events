@@ -14,7 +14,7 @@ func TestGetTransactionsRoute(t *testing.T) {
 	tests.DeleteTransactions()
 	tests.CreateTransaction()
 
-	router := routes.Init()
+	router := routes.Init(tests.InitApp())
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/transactions/", nil)
@@ -29,7 +29,7 @@ func TestGetOneTransactionRoute(t *testing.T) {
 	tests.DeleteTransactions()
 	txHash := tests.CreateTransaction()
 
-	router := routes.Init()
+	router := routes.Init(tests.InitApp())
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/transactions/"+txHash, nil)

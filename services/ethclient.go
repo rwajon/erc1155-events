@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/rwajon/erc1155-events/config"
+	"github.com/rwajon/erc1155-events/constants"
 	"github.com/rwajon/erc1155-events/db"
 	"github.com/rwajon/erc1155-events/models"
 	"github.com/rwajon/erc1155-events/utils"
@@ -40,7 +42,7 @@ type Transaction struct {
 
 var envs config.Env = config.GetEnvs()
 
-func ListenToERC1155Events() error {
+func ListenToERC1155Events(app models.App) error {
 	rpcClient, err := rpc.Dial(envs.RPCWebSocketURL)
 	ethClient := ethclient.NewClient(rpcClient)
 
@@ -49,17 +51,14 @@ func ListenToERC1155Events() error {
 		return err
 	}
 
-	log.Println("RPC connected", rpcClient)
-	log.Println("ethClient connected", ethClient)
+	log.Println("RPC client connected", rpcClient)
 
-	if contractAddresses := GetAddressesToWatch(); len(contractAddresses) > 0 {
-		logsCh := make(chan types.Log)
-		go SubscribeBlocks(ethClient, contractAddresses, logsCh)
-		for log := range logsCh {
-			go HandleNewLog(rpcClient, log)
-		}
-	} else {
-		fmt.Println("no contract address to watch")
+	logsCh := make(chan types.Log)
+
+	go Subscribe(app, ethClient, logsCh)
+
+	for log := range logsCh {
+		go HandleNewLog(rpcClient, log)
 	}
 
 	return nil
@@ -76,18 +75,20 @@ func GetAddressesToWatch() []common.Address {
 	return contractAddresses
 }
 
-func HandleNewLog(client *rpc.Client, log types.Log) {
+func HandleNewLog(client *rpc.Client, log types.Log) error {
 	fmt.Println("new log: ", log.TxHash.String())
 	result, _ := db.Transaction.GetOne(bson.M{
 		"hash": bson.M{"$regex": log.TxHash.String(), "$options": "im"},
 	})
 	if result != nil {
-		fmt.Println("duplicated transaction: ", string(utils.Jsonify(result)))
-		return
+		return errors.New("duplicated transaction: " + string(utils.Jsonify(result)))
 	}
-	if tx := GetTransaction(client, log); tx != nil {
-		SaveTransaction(*tx)
+	tx := GetTransaction(client, log)
+	if tx == nil {
+		return errors.New("failed to get transaction")
 	}
+	_, err := SaveTransaction(*tx)
+	return err
 }
 
 func GetTransaction(client *rpc.Client, log types.Log) *models.Transaction {
@@ -173,40 +174,32 @@ func GetBalance(client *ethclient.Client, address string, blockNumber string) fl
 	return utils.StringToFloat(balance.String()) / math.Pow10(18)
 }
 
-func GetContract(client *ethclient.Client, address string, blockNumber string) string {
-	if client == nil {
-		fmt.Println("client should not be nil")
-		return ""
-	}
-	var contract string
-	_address := common.HexToAddress(address)
-	_blockNumber := common.HexToAddress(blockNumber).Hash().Big()
-	bytecode, err := client.CodeAt(context.Background(), _address, _blockNumber)
-
-	if err != nil {
-		fmt.Println("can't get contract code from address:", _address)
-	} else if len(bytecode) > 0 {
-		contract = _address.String()
-	}
-	return contract
-}
-
-func SubscribeBlocks(client *ethclient.Client, contractAddresses []common.Address, logsCh chan types.Log) error {
+func Subscribe(app models.App, client *ethclient.Client, logsCh chan types.Log) error {
 	if client == nil || logsCh == nil {
-		return nil
+		return errors.New("client and log channel should not be nil")
+	}
+
+	contractAddresses := GetAddressesToWatch()
+
+	if len(contractAddresses) == 0 {
+		return errors.New("no contract address to watch")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	query := ethereum.FilterQuery{Addresses: contractAddresses}
-	sub, err := client.SubscribeFilterLogs(ctx, query, logsCh)
+	ethSub, err := client.SubscribeFilterLogs(ctx, query, logsCh)
 
 	if err != nil {
-		fmt.Println("subscribe error: ", err)
-		return err
+		return errors.New("subscribe error: " + err.Error())
 	}
 
-	fmt.Println("connection lost: ", <-sub.Err())
-	return <-sub.Err()
+	app.EventEmitter.On(constants.OnWatchListChange, func(data interface{}) {
+		ethSub.Unsubscribe()
+		go Subscribe(app, client, logsCh)
+	})
+
+	fmt.Println("connection lost: ", <-ethSub.Err())
+	return <-ethSub.Err()
 }
