@@ -140,7 +140,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controllers.NewAddressInWatch"
+                            "$ref": "#/definitions/models.NewAddressInWatch"
                         }
                     }
                 ],
@@ -182,12 +182,12 @@
                         "required": true
                     },
                     {
-                        "description": "new address to watch",
+                        "description": "address to update in watch list",
                         "name": "address",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controllers.NewAddressInWatch"
+                            "$ref": "#/definitions/models.NewAddressInWatch"
                         }
                     }
                 ],
@@ -286,14 +286,6 @@
         }
     },
     "definitions": {
-        "controllers.NewAddressInWatch": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                }
-            }
-        },
         "models.Error": {
             "type": "object",
             "properties": {
@@ -302,6 +294,14 @@
                 },
                 "error": {},
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NewAddressInWatch": {
+            "type": "object",
+            "properties": {
+                "address": {
                     "type": "string"
                 }
             }

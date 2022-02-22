@@ -1,16 +1,16 @@
 basePath: /api/v1
 definitions:
-  controllers.NewAddressInWatch:
-    properties:
-      address:
-        type: string
-    type: object
   models.Error:
     properties:
       code:
         type: integer
       error: {}
       message:
+        type: string
+    type: object
+  models.NewAddressInWatch:
+    properties:
+      address:
         type: string
     type: object
   models.Transaction:
@@ -148,7 +148,7 @@ paths:
         name: address
         required: true
         schema:
-          $ref: '#/definitions/controllers.NewAddressInWatch'
+          $ref: '#/definitions/models.NewAddressInWatch'
       produces:
       - application/json
       responses:
@@ -221,12 +221,12 @@ paths:
         name: addressId
         required: true
         type: string
-      - description: new address to watch
+      - description: address to update in watch list
         in: body
         name: address
         required: true
         schema:
-          $ref: '#/definitions/controllers.NewAddressInWatch'
+          $ref: '#/definitions/models.NewAddressInWatch'
       produces:
       - application/json
       responses:
