@@ -2,6 +2,9 @@
 
 ERC1155-events is an application that subscribes to smart contract transfer events and store them.
 
+- [Live API URL](https://erc1155-events.herokuapp.com)
+- [API docs](https://erc1155-events.herokuapp.com/docs/index.html)
+
 # Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
