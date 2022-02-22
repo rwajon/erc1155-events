@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/mitchellh/mapstructure"
+	"github.com/rwajon/erc1155-events/constants"
 	"github.com/rwajon/erc1155-events/db"
 	"github.com/rwajon/erc1155-events/models"
 	"github.com/rwajon/erc1155-events/utils"
@@ -20,6 +22,15 @@ var validate = validator.New()
 
 type NewAddressInWatch struct {
 	Address string `json:"address"`
+}
+
+func onWatchListChange(c *gin.Context, data interface{}) {
+	if v, exist := c.Get("app"); exist {
+		var app models.App
+		if err := mapstructure.Decode(v, &app); err == nil {
+			app.EventEmitter.Emit(constants.OnWatchListChange, data)
+		}
+	}
 }
 
 // Ping godoc
@@ -74,6 +85,8 @@ func AddAddressInWatchList(c *gin.Context) {
 		})
 		return
 	}
+
+	go onWatchListChange(c, result)
 
 	c.JSON(http.StatusCreated, models.Response{
 		Code:    http.StatusCreated,
@@ -241,6 +254,8 @@ func UpdateAddressInWatchList(c *gin.Context) {
 		return
 	}
 
+	go onWatchListChange(c, result)
+
 	c.JSON(http.StatusOK, models.Response{
 		Code:    http.StatusOK,
 		Message: "success",
@@ -271,6 +286,7 @@ func DeleteAddressInWatchList(c *gin.Context) {
 		return
 	}
 
+	go onWatchListChange(c, result)
 	c.JSON(http.StatusOK, models.Response{
 		Code:    http.StatusOK,
 		Message: "success",

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/rwajon/erc1155-events/config"
@@ -22,10 +23,13 @@ func getClient() (*rpc.Client, *ethclient.Client) {
 	return rpcClient, ethClient
 }
 
-func TestSubscribeBlocks(t *testing.T) {
+func TestSubscribe(t *testing.T) {
 	_, ethClient := getClient()
-	contractAddresses := []common.Address{}
-	assert.Nil(t, services.SubscribeBlocks(ethClient, contractAddresses, nil))
+	logsCh := make(chan types.Log)
+	tests.DeleteWatchList()
+	assert.Error(t, services.Subscribe(*tests.InitApp(), nil, logsCh))
+	assert.Error(t, services.Subscribe(*tests.InitApp(), ethClient, nil))
+	assert.Error(t, services.Subscribe(*tests.InitApp(), ethClient, logsCh))
 }
 
 func TestGetBlock(t *testing.T) {
@@ -34,11 +38,9 @@ func TestGetBlock(t *testing.T) {
 	assert.IsType(t, services.GetBlock(rpcClient, "latest"), &services.Block{})
 }
 
-func TesSaveTransaction(t *testing.T) {
+func TestSaveTransaction(t *testing.T) {
 	tests.DeleteTransactions()
-	tx := models.Transaction{
-		Hash: "test-tx-hash",
-	}
+	tx := models.Transaction{Hash: "test-tx-hash"}
 	isCreated, err := services.SaveTransaction(tx)
 	assert.True(t, isCreated)
 	assert.Nil(t, err)
@@ -51,4 +53,22 @@ func TestGetBalance(t *testing.T) {
 	json.Unmarshal(utils.Jsonify(block.Transactions[0]), &transaction)
 	res := services.GetBalance(ethClient, transaction["from"], block.Number)
 	assert.NotEqual(t, res, "")
+}
+
+func TestHandleNewLogDuplicatedError(t *testing.T) {
+	rpcClient, _ := getClient()
+	txHash := tests.CreateTransaction()
+	log := types.Log{
+		Address: common.HexToAddress(txHash),
+		TxHash:  common.HexToHash("0x7f268357a8c2552623316e2562d90e642bb538e6"),
+	}
+	assert.Error(t, services.HandleNewLog(rpcClient, log), &services.Block{})
+}
+func TestHandleNewLogError(t *testing.T) {
+	rpcClient, _ := getClient()
+	log := types.Log{
+		Address: common.HexToAddress("0x7f268357a8c2552623316e2562d90e642bb538e6"),
+		TxHash:  common.HexToHash("0x7f268357a8c2552623316e2562d90e642bb538e6"),
+	}
+	assert.Error(t, services.HandleNewLog(rpcClient, log), &services.Block{})
 }

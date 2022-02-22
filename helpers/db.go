@@ -5,13 +5,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rwajon/erc1155-events/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func DBInsertOne(collection *mongo.Collection, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+type DBFindManyAndCount struct {
+	Data  []map[string]interface{}
+	Count int64
+}
+
+type database struct{}
+
+var DB = new(database)
+
+func (db *database) InsertOne(collection *mongo.Collection, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	if document == nil {
 		fmt.Println("document to save is required")
 		return nil, nil
@@ -28,7 +36,7 @@ func DBInsertOne(collection *mongo.Collection, document interface{}, opts ...*op
 	return result, err
 }
 
-func DBInsertMany(collection *mongo.Collection, documents []interface{}, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
+func (db *database) InsertMany(collection *mongo.Collection, documents []interface{}, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
 	if documents == nil {
 		fmt.Println("documents to save are required")
 		return nil, nil
@@ -46,7 +54,7 @@ func DBInsertMany(collection *mongo.Collection, documents []interface{}, opts ..
 	return result, err
 }
 
-func DBFindOne(collection *mongo.Collection, filter interface{}, opts ...*options.FindOneOptions) (map[string]interface{}, error) {
+func (db *database) FindOne(collection *mongo.Collection, filter interface{}, opts ...*options.FindOneOptions) (map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -68,7 +76,7 @@ func DBFindOne(collection *mongo.Collection, filter interface{}, opts ...*option
 	return data, nil
 }
 
-func DBFindMany(collection *mongo.Collection, filter interface{}, opts ...*options.FindOptions) ([]map[string]interface{}, error) {
+func (db *database) FindMany(collection *mongo.Collection, filter interface{}, opts ...*options.FindOptions) ([]map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -95,7 +103,7 @@ func DBFindMany(collection *mongo.Collection, filter interface{}, opts ...*optio
 	return data, err
 }
 
-func DBFindManyAndCount(collection *mongo.Collection, filter interface{}, opts ...*options.FindOptions) (*models.DBFindManyAndCount, error) {
+func (db *database) FindManyAndCount(collection *mongo.Collection, filter interface{}, opts ...*options.FindOptions) (*DBFindManyAndCount, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -106,13 +114,13 @@ func DBFindManyAndCount(collection *mongo.Collection, filter interface{}, opts .
 		return nil, err
 	}
 
-	data, err := DBFindMany(collection, filter, opts...)
-	result := &models.DBFindManyAndCount{Count: count, Data: data}
+	data, err := DB.FindMany(collection, filter, opts...)
+	result := &DBFindManyAndCount{Count: count, Data: data}
 
 	return result, err
 }
 
-func DBUpdateOne(collection *mongo.Collection, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (db *database) UpdateOne(collection *mongo.Collection, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -126,7 +134,7 @@ func DBUpdateOne(collection *mongo.Collection, filter interface{}, update interf
 	return result, nil
 }
 
-func DBDeleteOne(collection *mongo.Collection, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+func (db *database) DeleteOne(collection *mongo.Collection, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

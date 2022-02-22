@@ -1,10 +1,33 @@
 package main
 
 import (
+	"net/http"
+
+	"github.com/chuckpreslar/emission"
+	"github.com/gin-gonic/gin"
 	"github.com/rwajon/erc1155-events/api"
+	"github.com/rwajon/erc1155-events/config"
 	"github.com/rwajon/erc1155-events/db"
+	"github.com/rwajon/erc1155-events/models"
 	"github.com/rwajon/erc1155-events/services"
 )
+
+var app *models.App
+
+func init() {
+	app := &models.App{
+		Envs:         config.GetEnvs(),
+		EventEmitter: emission.NewEmitter(),
+	}
+
+	if db.Init() == nil {
+		r := gin.Default()
+		r.Any("/*any", func(c *gin.Context) {
+			c.String(http.StatusInternalServerError, "can not connect to database")
+		})
+		r.Run(":" + app.Envs.Port)
+	}
+}
 
 // @title ERC1155-events
 // @version 1.0
@@ -22,7 +45,8 @@ import (
 // @schemes http
 // @schemes https
 func main() {
-	go db.Init()
-	go services.ListenToERC1155Events()
-	api.Run()
+	go func() {
+		services.ListenToERC1155Events(*app)
+	}()
+	api.Run(app)
 }
