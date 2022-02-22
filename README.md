@@ -1,9 +1,11 @@
 # ERC1155-events
 
 ERC1155-events is an application that subscribes to smart contract transfer events and store them.
+To get transfer events from an Ethereum smart contract address, you have to first add it to a watch list.
+To add an address in the watch list, please refer to the the [API documentation](https://erc1155-events.herokuapp.com/docs/index.html)
 
 - [Live API URL](https://erc1155-events.herokuapp.com)
-- [API docs](https://erc1155-events.herokuapp.com/docs/index.html)
+- [API documentation](https://erc1155-events.herokuapp.com/docs/index.html)
 
 # Getting Started
 
