@@ -12,23 +12,6 @@ import (
 	"github.com/rwajon/erc1155-events/services"
 )
 
-var app *models.App
-
-func init() {
-	app := &models.App{
-		Envs:         config.GetEnvs(),
-		EventEmitter: emission.NewEmitter(),
-	}
-
-	if db.Init() == nil {
-		r := gin.Default()
-		r.Any("/*any", func(c *gin.Context) {
-			c.String(http.StatusInternalServerError, "can not connect to database")
-		})
-		r.Run(":" + app.Envs.Port)
-	}
-}
-
 // @title ERC1155-events
 // @version 1.0
 // @description ERC1155 events.
@@ -45,6 +28,18 @@ func init() {
 // @schemes http
 // @schemes https
 func main() {
+	app := &models.App{
+		Envs:         config.GetEnvs(),
+		EventEmitter: emission.NewEmitter(),
+	}
+
+	if db.Init() == nil {
+		r := gin.Default()
+		r.Any("/*any", func(c *gin.Context) {
+			c.String(http.StatusInternalServerError, "can not connect to database")
+		})
+		r.Run(":" + app.Envs.Port)
+	}
 	go func() {
 		services.ListenToERC1155Events(*app)
 	}()
