@@ -145,7 +145,7 @@ const docTemplate_swagger = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controllers.NewAddressInWatch"
+                            "$ref": "#/definitions/models.NewAddressInWatch"
                         }
                     }
                 ],
@@ -187,12 +187,12 @@ const docTemplate_swagger = `{
                         "required": true
                     },
                     {
-                        "description": "new address to watch",
+                        "description": "address to update in watch list",
                         "name": "address",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controllers.NewAddressInWatch"
+                            "$ref": "#/definitions/models.NewAddressInWatch"
                         }
                     }
                 ],
@@ -291,14 +291,6 @@ const docTemplate_swagger = `{
         }
     },
     "definitions": {
-        "controllers.NewAddressInWatch": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                }
-            }
-        },
         "models.Error": {
             "type": "object",
             "properties": {
@@ -307,6 +299,14 @@ const docTemplate_swagger = `{
                 },
                 "error": {},
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NewAddressInWatch": {
+            "type": "object",
+            "properties": {
+                "address": {
                     "type": "string"
                 }
             }

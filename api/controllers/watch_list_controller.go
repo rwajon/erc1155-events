@@ -39,7 +39,7 @@ func onWatchListChange(c *gin.Context, data interface{}) {
 // @Tags watch-list
 // @Accept */*
 // @Produce json
-// @Param address body NewAddressInWatch true "new address to watch"
+// @Param address body models.NewAddressInWatch true "new address to watch"
 // @Success 201 {object} models.WatchList
 // @Failure 400 {object} models.Error
 // @Router /watch-list [post]
@@ -217,7 +217,7 @@ func GetOneAddressWatchList(c *gin.Context) {
 // @Accept */*
 // @Produce json
 // @Param   addressId     path    string     true        "address ID to update"
-// @Param address body NewAddressInWatch true "new address to watch"
+// @Param address body models.NewAddressInWatch true "address to update in watch list"
 // @Success 200 {object} models.WatchList
 // @Failure 400 {object} models.Error
 // @Failure 404 {object} models.Error "address {addressId} not found in watch list"
