@@ -34,8 +34,8 @@ accounts=$(curl -X POST --data '{
             "id":1
           }' -H "Content-Type: application/json" $host)
 
-from_address=$(echo $accounts | python -c "import sys, json; print json.load(sys.stdin)['result'][0]")
-to_address=$(echo $accounts | python -c "import sys, json; print json.load(sys.stdin)['result'][1]")
+from_address=$(echo $(echo $accounts | awk -F'[:}]' '{print $(NF-1)}' | awk -F'"' '{print $(NF-1)}'))
+to_address=$(echo $(echo $accounts | awk -F'[:}]' '{print $(NF-1)}' | awk -F'"' '{print $(NF-3)}'))
 from_address=${from:-$from_address}
 to_address=${to:-$to_address}
 
