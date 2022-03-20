@@ -2,6 +2,7 @@ FROM golang:1.17-alpine AS development
 WORKDIR /app
 COPY . ./
 RUN go mod download
+RUN apk add --update curl build-base
 
 FROM development AS test
 ENV GO_ENV=test
